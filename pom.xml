@@ -17,6 +17,6 @@
 	
 	<modules>
 		<module>swing</module>
-		<module>at.bestsolution.fxnativeembed.swing-demo</module>
+		<module>swing-demo</module>
 	</modules>
 </project>

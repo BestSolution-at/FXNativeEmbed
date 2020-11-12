@@ -57,18 +57,6 @@ public class FXEmbedDemo {
 	}
 	
 	private static void createFXUI(Scene scene) {
-//		Button button = new Button("Hello JavaFX");
-//		RotateTransition t = new RotateTransition(Duration.millis(1000),button);
-//		t.setInterpolator(Interpolator.EASE_BOTH);
-//		t.setFromAngle(0);
-//		t.setToAngle(180);
-//		t.setCycleCount(2);
-//		t.setAutoReverse(true);
-//		button.setOnAction( evt -> {
-//			System.err.println("Hello my friend!");
-//			t.playFromStart();
-//		});
-		
 		ListView<String> view = new ListView<>();
 		for( int i = 0; i < 100; i++ ) {
 			view.getItems().add("Test " + i);
