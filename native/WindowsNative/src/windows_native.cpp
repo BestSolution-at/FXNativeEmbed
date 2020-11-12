@@ -1,3 +1,6 @@
+/**
+ * Copyright (C) 2020 - BestSolution.at
+ */
 #include <jni.h>
 #include <windows.h>
 
