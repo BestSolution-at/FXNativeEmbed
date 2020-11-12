@@ -145,24 +145,7 @@ public class FXEmbed extends JComponent {
 			});			
 		}
 	}
-	
-//	private float scaleFactor(double x, double y) {
-//		// 1.20 x 1.50 x 77
-//		ObservableList<Screen> screen = Screen.getScreensForRectangle(x, y, 1, 1);
-//		Screen s = Screen.getPrimary();
-//		if( ! screen.isEmpty() ) {
-//			s = screen.get(0);
-//		}
-//		try {
-//			Field field = Screen.class.getDeclaredField("renderScale");
-//			field.setAccessible(true);
-//			return (float) field.get(s);
-//		} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
-//			e.printStackTrace();
-//		}
-//		return 1.0f;
-//	}
-	
+		
 	private TKSceneListener getTKSceneListener() {
 		if( sceneListener == null ) {
 			Scene scene = stage.getScene();
