@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 - BestSolution.at
+ * Copyright (C) 2020 - BestSolution.at
  */
 package at.bestsolution.fxembed.swing.demo;
 

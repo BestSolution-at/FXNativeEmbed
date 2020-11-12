@@ -1,3 +1,6 @@
+/**
+ * Copyright (C) 2020 - BestSolution.at
+ */
 package at.bestsolution.fxembed.swing.win32;
 
 @SuppressWarnings("javadoc")
