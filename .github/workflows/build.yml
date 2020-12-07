@@ -38,6 +38,8 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: version
+    - name: Display structure of downloaded files
+      run: ls -R
     - name: Setup Version
       run: echo "BUILD_VERSION=$(cat version/version.txt)"
     
