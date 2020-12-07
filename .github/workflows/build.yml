@@ -16,6 +16,12 @@ jobs:
   prepare-version:
     runs-on: windows-latest
     steps:
+    - name: Debug A
+      run: echo ${{github.ref}}
+    - name: Debug B
+      run: echo ${{ startsWith('refs/tags/v', github.ref) }}
+    - name: Debug C
+      run: echo ${{ !startsWith('refs/tags/v', github.ref) }}
     - name: Determine Release Revision
       run: echo "${{github.ref}}" | cut -dv -f2 > version.txt
       if: ${{ startsWith('refs/tags/v', github.ref) }}
