@@ -124,14 +124,24 @@ jobs:
         path: |
           swing/target/swing-*.jar
           swing-demo/target/swing-demo-*.jar
-          
-          
+    
     - name: Prepare Release Artifacts
+      if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+      run: |
+        mkdir release
+        cp swing/target/swing-*.jar release/
+        cp swing-demo/target/swing-demo-*.jar release/
+        cp -aux natives-x86 release/
+        cp -aux natives-x64 release/
+        cp README.md release/
+        cp LICENSE release/
+          
+    - name: Zip Release Artifacts
       uses: papeloto/action-zip@v1
       if: ${{ startsWith(github.ref, 'refs/tags/v') }}
       with: 
         dest: release.zip
-        files: README.md LICENSE swing/target/swing-*.jar swing-demo/target/swing-demo-*.jar natives-x64/ natives-x86/
+        files: release/
          
     - uses: actions/create-release@v1
       id: create_release
@@ -145,7 +155,7 @@ jobs:
           FXNativeEmbed Release
           add some text here?
         draft: true
-        prerelase: false
+        prerelease: false
         
     - uses: actions/upload-release-asset@v1
       if: ${{ startsWith(github.ref, 'refs/tags/v') }}
