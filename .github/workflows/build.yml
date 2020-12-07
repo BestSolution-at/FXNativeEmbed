@@ -49,13 +49,37 @@ jobs:
       run: cmake --version
       
     - uses: actions/checkout@v2
-    - name: Prepare Build
-      run: cmake -G "Visual Studio 16 2019" -S native -B native-build 
-      
-    - name: Build Natives
-      run: cmake --build native-build
-      
     
+    - name: Prepare Build x86
+      run: cmake -G "Visual Studio 16 2019" -A Win32 -S native -B native-build-x86 
+    - name: Prepare Build x64
+      run: cmake -G "Visual Studio 16 2019" -A x64 -S native -B native-build-x64 
+      
+    - name: Build Natives x86 Debug
+      run: cmake --build native-build-x86 --config Debug
+      
+    - name: Build Natives x86 Release
+      run: cmake --build native-build-x86 --config Release
+      
+    - name: Build Natives x64 Debug
+      run: cmake --build native-build-x64 --config Debug
+    
+    - name: Build Natives x64 Release
+      run: cmake --build native-build-x64 --config Release
+      
+    - uses: actions/upload-artifact@v2
+      with:
+        name: natives-x86
+        path: |
+          native-build-x86/FXNativeEmbed/Debug
+          native-build-x86/FXNativeEmbed/Release
+          
+    - uses: actions/upload-artifact@v2
+      with:
+        name: natives-x64
+        path: |
+          native-build-x64/FXNativeEmbed/Debug
+          native-build-x64/FXNativeEmbed/Release
     
   build-java:
     needs: 
