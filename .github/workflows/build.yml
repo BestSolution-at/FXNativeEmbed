@@ -38,10 +38,8 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: version
-    - name: Display structure of downloaded files
-      run: ls -R
     - name: Setup Version
-      run: echo "BUILD_VERSION=$(cat version.txt)"
+      run: echo "BUILD_VERSION=$(cat version.txt)" >> $GITHUB_ENV
     
     - name: Setup CMake
       uses: jwlawson/actions-setup-cmake@v1.4
@@ -55,7 +53,7 @@ jobs:
       run: cmake -G "Visual Studio 16 2019" -S native -B native-build 
       
     - name: Build Natives
-      run: cd native-build && cmake --build
+      run: cmake --build native-build
       
     
     
@@ -72,7 +70,7 @@ jobs:
       with:
         name: version
     - name: Setup Version
-      run: echo "BUILD_VERSION=$(cat version.txt)"
+      run: echo "BUILD_VERSION=$(cat version.txt)" >> $GITHUB_ENV
       
       
     - name: Output Build Revision
