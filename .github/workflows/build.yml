@@ -86,6 +86,10 @@ jobs:
     
     runs-on: windows-latest
     
+    defaults:
+      run:
+        shell: bash
+    
     steps:
     - name: Retrieve Version
       uses: actions/download-artifact@v2
