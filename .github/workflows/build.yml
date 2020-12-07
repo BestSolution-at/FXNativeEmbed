@@ -94,6 +94,10 @@ jobs:
     - name: Setup Version
       run: echo "BUILD_VERSION=$(cat version.txt)" >> $GITHUB_ENV
       
+    - name: Setup Version 2
+      id: version
+      run: echo "::set-output name=version::$(cat version.txt)"
+      
     - name: Retrieve natives x86
       uses: actions/download-artifact@v2
       with:
@@ -112,7 +116,7 @@ jobs:
     
     - uses: actions/checkout@v2
     - name: Maven build
-      run: mvn -B -Drevision=$BUILD_VERSION package
+      run: mvn -B -Drevision=${{ steps.version.version }} package
       
     - uses: actions/upload-artifact@v2
       with:
@@ -128,7 +132,7 @@ jobs:
       run: |
         mkdir release
         echo ${{ github.sha }} > release/sha.txt
-        cp version.txt release/
+        echo ${{ steps.version.version }} > release/version.txt
         cp swing/target/swing-*.jar release/
         cp swing-demo/target/swing-demo-*.jar release/
         cp natives-x86 release/
