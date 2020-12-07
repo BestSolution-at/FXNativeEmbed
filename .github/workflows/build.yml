@@ -122,3 +122,10 @@ jobs:
     - name: Maven build
       run: mvn -B -Drevision=$BUILD_VERSION package
       
+    - uses: actions/upload-artifact@v2
+      with:
+        name: java-artifacts
+        path: |
+          swing/target/swing-*.jar
+          swing-demo/target/swing-demo-*.jar
+      
