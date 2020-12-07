@@ -71,15 +71,15 @@ jobs:
       with:
         name: natives-x86
         path: |
-          native-build-x86/FXNativeEmbed/Debug/
-          native-build-x86/FXNativeEmbed/Release/
+          native-build-x86/WindowsNative/Debug/
+          native-build-x86/WindowsNative/Release/
           
     - uses: actions/upload-artifact@v2
       with:
         name: natives-x64
         path: |
-          native-build-x64/FXNativeEmbed/Debug/
-          native-build-x64/FXNativeEmbed/Release/
+          native-build-x64/WindowsNative/Debug/
+          native-build-x64/WindowsNative/Release/
     
   build-java:
     needs: 
