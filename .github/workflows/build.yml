@@ -1,5 +1,8 @@
 name: Build
 
+env:
+  mainRevision: ${{ '0.0.1-SNAPHSOT' }}
+
 on:
   push:
     branches:
@@ -33,14 +36,25 @@ jobs:
     runs-on: windows-latest
     
     steps:
+    
+    - name: Determine Release Revision
+      run: echo "::set-output name=buildRevision::$(echo ${{github.ref}} | cut -dv -f2)"
+      if: ${{ startsWith('refs/tags/v', github.ref) }}
+    - name: Determine Nightly Revision
+      run: echo "::set-output name=buildRevision::${{env.mainRevision}}"
+      if: ${{ !startsWith('refs/tags/v', github.ref) }}
+      
+    - name: Output Build Revision
+      run: echo ${{buildRevision}}
+      
     - uses: actions/setup-java@v1
       with:
         java-version: '8'
-        java-package: jdk
+        java-package: jdk+fx
     - name: Test java
       run: java -version
     
     - uses: actions/checkout@v2
     - name: Maven build
-      run: mvn package
+      run: mvn -B -Drevision=${{buildRevision}} package
       
