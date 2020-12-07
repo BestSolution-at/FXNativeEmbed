@@ -12,10 +12,35 @@ on:
     - 'v*'
 
 jobs:
+
+  prepare-version:
+    runs-on: windows-latest
+    steps:
+    - name: Determine Release Revision
+      run: echo "${{github.ref}}" | cut -dv -f2 > version.txt
+      if: ${{ startsWith('refs/tags/v', github.ref) }}
+    - name: Determine Nightly Revision
+      run: echo "${{env.mainRevision}}" > version.txt
+      if: ${{ !startsWith('refs/tags/v', github.ref) }}
+    - uses: actions/upload-artifact@v2
+      with:
+        name: version
+        path: version.txt
+  
+
   build-natives:
+    needs: prepare-version
+    
     runs-on: windows-latest
     
     steps:
+    - name: Retrieve Version
+      uses: actions/download-artifact@v2
+      with:
+        name: version
+    - name: Setup Version
+      run: echo "BUILD_VERSION=$(cat version/version.txt)"
+    
     - name: Setup CMake
       uses: jwlawson/actions-setup-cmake@v1.4
       with:
@@ -33,16 +58,20 @@ jobs:
     
     
   build-java:
+    needs: 
+    - prepare-version
+    - build-natives
+    
     runs-on: windows-latest
     
     steps:
-    
-    - name: Determine Release Revision
-      run: echo "::set-output name=buildRevision::$(echo ${{github.ref}} | cut -dv -f2)"
-      if: ${{ startsWith('refs/tags/v', github.ref) }}
-    - name: Determine Nightly Revision
-      run: echo "::set-output name=buildRevision::${{env.mainRevision}}"
-      if: ${{ !startsWith('refs/tags/v', github.ref) }}
+    - name: Retrieve Version
+      uses: actions/download-artifact@v2
+      with:
+        name: version
+    - name: Setup Version
+      run: echo "BUILD_VERSION=$(cat version/version.txt)"
+      
       
     - name: Output Build Revision
       run: echo ${{buildRevision}}
@@ -56,5 +85,5 @@ jobs:
     
     - uses: actions/checkout@v2
     - name: Maven build
-      run: mvn -B -Drevision=${{buildRevision}} package
+      run: mvn -B -Drevision=${{env.BUILD_VERSION}} package
       
