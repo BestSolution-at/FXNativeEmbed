@@ -74,7 +74,7 @@ jobs:
       
       
     - name: Output Build Revision
-      run: echo ${{buildRevision}}
+      run: echo ${{env.BUILD_VERSION}}
       
     - uses: actions/setup-java@v1
       with:
