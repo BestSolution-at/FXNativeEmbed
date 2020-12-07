@@ -121,6 +121,9 @@ jobs:
           swing/target/swing-*.jar
           swing-demo/target/swing-demo-*.jar
     
+    - name: List all
+      run: ls -al
+    
     - name: Prepare Release Artifacts
       run: |
         mkdir release
