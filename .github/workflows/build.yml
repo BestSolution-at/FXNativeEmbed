@@ -71,15 +71,15 @@ jobs:
       with:
         name: natives-x86
         path: |
-          native-build-x86/FXNativeEmbed/Debug
-          native-build-x86/FXNativeEmbed/Release
+          native-build-x86/FXNativeEmbed/Debug/
+          native-build-x86/FXNativeEmbed/Release/
           
     - uses: actions/upload-artifact@v2
       with:
         name: natives-x64
         path: |
-          native-build-x64/FXNativeEmbed/Debug
-          native-build-x64/FXNativeEmbed/Release
+          native-build-x64/FXNativeEmbed/Debug/
+          native-build-x64/FXNativeEmbed/Release/
     
   build-java:
     needs: 
@@ -96,6 +96,17 @@ jobs:
     - name: Setup Version
       run: echo "BUILD_VERSION=$(cat version.txt)" >> $GITHUB_ENV
       
+    - name: Retrieve natives x86
+      uses: actions/download-artifact@v2
+      with:
+        name: natives-x86
+        path: natives-x86
+    - name: Retrieve natives x64
+      uses: actions/download-artifact@v2
+      with:
+        name: natives-x64
+        path: natives-x64
+        
       
     - name: Output Build Revision
       run: echo ${{env.BUILD_VERSION}}
