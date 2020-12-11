@@ -16,8 +16,8 @@ jobs:
   prepare-version:
     runs-on: windows-latest
     outputs:
-      version: $${{ steps.version.outputs.version }}
-      isRelease: $${{ steps.version.outputs.isRelease }}
+      version: ${{ steps.version.outputs.version }}
+      isRelease: ${{ steps.version.outputs.isRelease }}
     steps:
     - name: Determine Release Revision
       run: echo "${{github.ref}}" | cut -dv -f2 > version.txt
