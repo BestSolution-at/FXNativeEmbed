@@ -179,7 +179,6 @@ jobs:
         release_name: Release ${{ needs.prepare-version.outputs.version }}
         body: |
           FXNativeEmbed Release ${{ needs.prepare-version.outputs.version }}
-          add some text here?
         draft: true
         prerelease: false
         
