@@ -16,6 +16,9 @@ jobs:
   prepare-version:
     name: Prepare Version
     runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
     outputs:
       version: ${{ steps.version.outputs.version }}
       isRelease: ${{ steps.version.outputs.isRelease }}
@@ -34,13 +37,17 @@ jobs:
   output-version:
     runs-on: windows-latest
     needs: prepare-version
+    defaults:
+      run:
+        shell: bash
     env:
       VER: ${{needs.prepare-version.outputs.version}}
       VER2: ${{ needs.prepare-version.outputs.version }}
     steps:
     - run: |
-       echo ">>${VER}<<"
-       echo ">>${{needs.prepare-version.outputs.version}}<<"
+       echo "VER: $VER"
+       echo "VER2: ${VER2}"
+       echo "exp: ${{needs.prepare-version.outputs.version}}"
 
   build-natives:
     name: Build Natives ${{needs.prepare-version.outputs.version}}
@@ -95,7 +102,7 @@ jobs:
     
     env:
       SHA: ${{github.sha}}
-      VER: ${{needs.prepare-version.outputs.version}}}
+      VER: ${{needs.prepare-version.outputs.version}}
     
     runs-on: windows-latest
     
