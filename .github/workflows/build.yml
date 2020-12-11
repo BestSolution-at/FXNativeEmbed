@@ -33,9 +33,7 @@ jobs:
 
   build-natives:
     needs: prepare-version
-    
     runs-on: windows-latest
-    
     steps:
     
     - name: Setup CMake
@@ -84,7 +82,7 @@ jobs:
     
     env:
       SHA: ${{ github.sha }}
-      VER: ${{ needs.prepare-version.outputs.version }}
+      VER: ${{ needs.prepare-version.outputs.version }}}
     
     runs-on: windows-latest
     
@@ -145,14 +143,14 @@ jobs:
           
     - name: Zip Release Artifacts
       uses: papeloto/action-zip@v1
-      if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+      if: ${{ needs.prepare-version.outputs.isRelease }}
       with: 
         dest: release.zip
         files: release/
          
     - uses: actions/create-release@v1
       id: create_release
-      if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+      if: ${{ needs.prepare-version.outputs.isRelease }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
@@ -165,7 +163,7 @@ jobs:
         prerelease: false
         
     - uses: actions/upload-release-asset@v1
-      if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+      if: ${{ needs.prepare-version.outputs.isRelease }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
