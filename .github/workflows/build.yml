@@ -29,10 +29,6 @@ jobs:
       run: |
         echo "::set-output name=isRelease::${{ startsWith(github.ref, 'refs/tags/v') }}"
         echo "::set-output name=version::$(cat version.txt)"
-    - name: blub
-      run: |
-        echo "Version: {{steps.version.outputs.version}}"
-        echo "isRelease: {{steps.version.outputs.isRelease}}"t
   
 
   build-natives:
@@ -86,6 +82,10 @@ jobs:
     - prepare-version
     - build-natives
     
+    env:
+      SHA: ${{ github.sha }}
+      VER: ${{ needs.prepare-version.outputs.version }}
+    
     runs-on: windows-latest
     
     defaults:
@@ -114,7 +114,7 @@ jobs:
     
 
     - name: Maven build
-      run: mvn -B -Drevision={{ needs.prepare-version.outputs.version }} package
+      run: mvn -B -Drevision=$VER package
       
     - uses: actions/upload-artifact@v2
       with:
@@ -129,8 +129,8 @@ jobs:
     - name: Prepare Release Artifacts
       run: |
         mkdir release
-        echo {{ github.sha }} > release/sha.txt
-        echo {{ needs.prepare-version.outputs.version }} > release/version.txt
+        echo $SHA > release/sha.txt
+        echo $VER > release/version.txt
         cp swing/target/swing-*.jar release/
         cp swing-demo/target/swing-demo-*.jar release/
         cp -aux natives-x86 release/
