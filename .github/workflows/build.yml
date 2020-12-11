@@ -14,6 +14,7 @@ on:
 jobs:
 
   prepare-version:
+    name: Prepare Version
     runs-on: windows-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
@@ -35,12 +36,14 @@ jobs:
     needs: prepare-version
     env:
       VER: ${{needs.prepare-version.outputs.version}}
+      VER2: ${{ needs.prepare-version.outputs.version }}
     steps:
     - run: |
-       echo ">>$VER<<"
+       echo ">>${VER}<<"
        echo ">>${{needs.prepare-version.outputs.version}}<<"
 
   build-natives:
+    name: Build Natives ${{needs.prepare-version.outputs.version}}
     needs: prepare-version
     runs-on: windows-latest
     steps:
@@ -85,6 +88,7 @@ jobs:
           native-build-x64/WindowsNative/Release/
     
   build-java:
+    name: Build Java ${{needs.prepare-version.outputs.version}}
     needs: 
     - prepare-version
     - build-natives
@@ -151,6 +155,7 @@ jobs:
         path: release/
 
   create-release:
+    name: Create Release ${{needs.prepare-version.outputs.version}}
     if: ${{ needs.prepare-version.outputs.isRelease == true }}
     needs:
     - prepare-version
