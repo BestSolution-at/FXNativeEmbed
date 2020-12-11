@@ -146,8 +146,8 @@ jobs:
         echo ${{ steps.version.outputs.version }} > release/version.txt
         cp swing/target/swing-*.jar release/
         cp swing-demo/target/swing-demo-*.jar release/
-        cp natives-x86 release/
-        cp natives-x64 release/
+        cp -aux natives-x86 release/
+        cp -aux natives-x64 release/
         cp README.md release/
         cp LICENSE release/
         
