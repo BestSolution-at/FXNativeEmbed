@@ -140,6 +140,25 @@ jobs:
       with:
         name: release
         path: release/
+
+  create-release:
+    needs:
+    - prepare-version
+    - build-java
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    
+    steps:      
+    - name: Download release aritfact
+      uses: actions/download-artifact@v2
+      with:
+        name: release
+        path: release 
+        
+    - name: Show All
+      run: ls -al
           
     - name: Zip Release Artifacts
       uses: papeloto/action-zip@v1
