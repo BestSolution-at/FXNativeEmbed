@@ -148,7 +148,7 @@ jobs:
 
   create-release:
     name: Create Release ${{needs.prepare-version.outputs.version}}
-    if: ${{ needs.prepare-version.outputs.isRelease == true }}
+    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
     needs:
     - prepare-version
     - build-java
