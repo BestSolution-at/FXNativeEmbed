@@ -37,6 +37,7 @@ import javax.swing.SwingUtilities;
 
 import com.sun.javafx.tk.TKScene;
 import com.sun.javafx.tk.TKSceneListener;
+import com.sun.javafx.tk.TKStage;
 
 import at.bestsolution.fxembed.swing.win32.WindowsNative;
 import javafx.application.Application;
@@ -220,7 +221,7 @@ public class FXEmbed extends JComponent {
 				// Make sure the native window is not shown to the user before we reparent it
 				s.setOpacity(0);
 				s.show();
-				long rawHandle = s.impl_getPeer().getRawHandle();
+				long rawHandle = getWindowHandle(s);
 				embedder.setFXHandle(s, rawHandle, false);
 				embedder.stage = s;
 			});
@@ -228,6 +229,23 @@ public class FXEmbed extends JComponent {
 		t.start();
 
 		return embedder;
+	}
+	
+	private static long getWindowHandle(Stage s) {
+		try {
+			return s.impl_getPeer().getRawHandle();
+		} catch (Throwable e) {
+			try {
+				TKStage peer = s.impl_getPeer();
+				Class<?> windowStage = peer.getClass(); // com.sun.javafx.tk.quantum.WindowStage
+				Method method = windowStage.getDeclaredMethod("getPlatformWindow");
+				method.setAccessible(true);
+				com.sun.glass.ui.Window w = (com.sun.glass.ui.Window) method.invoke(peer);
+				return w.getNativeHandle();
+			} catch (Throwable e2) {
+				throw new IllegalStateException("Unable to get native window handle",e);
+			}
+		}
 	}
 
 	/**
