@@ -5,6 +5,7 @@ package at.bestsolution.fxembed.swing;
 
 import java.awt.AWTEvent;
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Point;
@@ -37,6 +38,7 @@ import javax.swing.SwingUtilities;
 
 import com.sun.javafx.tk.TKScene;
 import com.sun.javafx.tk.TKSceneListener;
+import com.sun.javafx.tk.TKStage;
 
 import at.bestsolution.fxembed.swing.win32.WindowsNative;
 import javafx.application.Application;
@@ -51,7 +53,7 @@ import javafx.stage.StageStyle;
  * Embed JavaFX Natively in Swing/AWT as a <strong>Heavyweight</strong>
  * component
  */
-@SuppressWarnings({ "deprecation", "restriction" })
+@SuppressWarnings({ "restriction" })
 public class FXEmbed extends JComponent {
 	/**
 	 * 
@@ -149,13 +151,13 @@ public class FXEmbed extends JComponent {
 	private TKSceneListener getTKSceneListener() {
 		if( sceneListener == null ) {
 			Scene scene = stage.getScene();
-			TKScene peer = scene.impl_getPeer();
 			try {
+				TKScene peer = getTkScene(scene);
 				Field field = peer.getClass().getSuperclass().getDeclaredField("sceneListener");
 				field.setAccessible(true);
 				sceneListener = (TKSceneListener) field.get(peer);
-			} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e1) {
-				e1.printStackTrace();
+			} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+				throw new IllegalStateException("Unable to get scene listener. ", e);
 			}
 		}
 		return sceneListener;
@@ -220,7 +222,7 @@ public class FXEmbed extends JComponent {
 				// Make sure the native window is not shown to the user before we reparent it
 				s.setOpacity(0);
 				s.show();
-				long rawHandle = s.impl_getPeer().getRawHandle();
+				long rawHandle = getWindowHandle(s);
 				embedder.setFXHandle(s, rawHandle, false);
 				embedder.stage = s;
 			});
@@ -228,6 +230,54 @@ public class FXEmbed extends JComponent {
 		t.start();
 
 		return embedder;
+	}
+	
+	private static long getWindowHandle(Stage s) {
+		try {
+			TKStage peer = getTkStage(s);
+			Class<?> windowStage = peer.getClass(); // com.sun.javafx.tk.quantum.WindowStage
+			Method method = windowStage.getDeclaredMethod("getPlatformWindow");
+			method.setAccessible(true);
+			com.sun.glass.ui.Window w = (com.sun.glass.ui.Window) method.invoke(peer);
+			return w.getNativeHandle();
+		} catch (Throwable e) {
+			throw new IllegalStateException("Unable to get native window handle. ", e);
+		}
+	}
+	
+	private static TKStage getTkStage(Stage s) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+		Method getPeer = null;
+		try {
+			// java 9 and above
+			getPeer = javafx.stage.Window.class.getDeclaredMethod("getPeer");
+		} catch (NoSuchMethodException e) {
+			try {
+				// java 8
+				getPeer = javafx.stage.Window.class.getDeclaredMethod("impl_getPeer");
+			} catch (Throwable e2) {
+				throw new IllegalStateException("Unable to get peer. ", e2);
+			}
+		}
+		getPeer.setAccessible(true);
+		return (TKStage) getPeer.invoke(s);
+	}
+	
+
+	private TKScene getTkScene(Scene s) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+		Method getPeer = null;
+		try {
+			// java 9 and above
+			getPeer = Scene.class.getDeclaredMethod("getPeer");
+		} catch (NoSuchMethodException e) {
+			try {
+				// java 8
+				getPeer = Scene.class.getDeclaredMethod("impl_getPeer");
+			} catch (Throwable e2) {
+				throw new IllegalStateException("Unable to get peer. ", e2);
+			}
+		}
+		getPeer.setAccessible(true);
+		return (TKScene) getPeer.invoke(s);
 	}
 
 	/**
@@ -270,8 +320,7 @@ public class FXEmbed extends JComponent {
 			}
 
 			
-			Object peer = window.getPeer();
-			if (peer == null) {
+			if (!window.isDisplayable()) {
 				// FIXME We need to handle this situation
 				return;
 			}
@@ -284,6 +333,7 @@ public class FXEmbed extends JComponent {
 				}
 			});
 
+			Object peer = getAwtWindowPeer(window);
 			long hWnd = getWindowHandle(peer);
 			WindowsNative.SetParent(handle, hWnd);
 			long style = WindowsNative.GetWindowLongPtrW(handle,  WindowsNative.GWL_STYLE);
@@ -316,6 +366,16 @@ public class FXEmbed extends JComponent {
 		});
 	}
 	
+	private Object getAwtWindowPeer(Window window) {
+		try {
+			Field componentPeer = Component.class.getDeclaredField("peer");
+			componentPeer.setAccessible(true);
+			return componentPeer.get(window);
+		} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	void desktopPositionChanged() {
 		WindowsNative.SendMessage(fxHandle, WindowsNative.WM_MOVE, 0, 0);
 	}

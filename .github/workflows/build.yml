@@ -1,0 +1,193 @@
+name: Build
+
+env:
+  mainRevision: ${{ '0.0.1-SNAPSHOT' }}
+
+on:
+  push:
+    branches:
+    - master
+    - main
+    tags:
+    - 'v*'
+
+jobs:
+
+  prepare-version:
+    name: Prepare Version
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      isRelease: ${{ steps.version.outputs.isRelease }}
+    steps:
+    - name: Determine Release Revision
+      run: echo "${{github.ref}}" | cut -dv -f2 > version.txt
+      if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+    - name: Determine Nightly Revision
+      run: echo "${{env.mainRevision}}" > version.txt
+      if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+    - id: version
+      run: |
+        echo "::set-output name=isRelease::${{ startsWith(github.ref, 'refs/tags/v') }}"
+        echo "::set-output name=version::$(cat version.txt)"
+
+  build-natives:
+    name: Build Natives ${{needs.prepare-version.outputs.version}}
+    needs: prepare-version
+    runs-on: windows-latest
+    steps:
+    
+    - name: Setup CMake
+      uses: jwlawson/actions-setup-cmake@v1.4
+      with:
+        cmake-version: '3.16.x'
+      
+    - uses: actions/checkout@v2
+    
+    - name: Prepare Build x86
+      run: cmake -G "Visual Studio 16 2019" -A Win32 -S native -B native-build-x86
+      
+    - name: Prepare Build x64
+      run: cmake -G "Visual Studio 16 2019" -A x64 -S native -B native-build-x64 
+      
+    - name: Build Natives x86 Debug
+      run: cmake --build native-build-x86 --config Debug
+      
+    - name: Build Natives x86 Release
+      run: cmake --build native-build-x86 --config Release
+      
+    - name: Build Natives x64 Debug
+      run: cmake --build native-build-x64 --config Debug
+    
+    - name: Build Natives x64 Release
+      run: cmake --build native-build-x64 --config Release
+      
+    - uses: actions/upload-artifact@v2
+      with:
+        name: natives-x86
+        path: |
+          native-build-x86/WindowsNative/Debug/
+          native-build-x86/WindowsNative/Release/
+          
+    - uses: actions/upload-artifact@v2
+      with:
+        name: natives-x64
+        path: |
+          native-build-x64/WindowsNative/Debug/
+          native-build-x64/WindowsNative/Release/
+    
+  build-java:
+    name: Build Java ${{needs.prepare-version.outputs.version}}
+    needs: 
+    - prepare-version
+    - build-natives
+    
+    env:
+      SHA: ${{github.sha}}
+      VER: ${{needs.prepare-version.outputs.version}}
+    
+    runs-on: windows-latest
+    
+    defaults:
+      run:
+        shell: bash
+    
+    steps:
+    
+    - uses: actions/checkout@v2
+
+    - name: Retrieve natives x86
+      uses: actions/download-artifact@v2
+      with:
+        name: natives-x86
+        path: natives-x86
+    - name: Retrieve natives x64
+      uses: actions/download-artifact@v2
+      with:
+        name: natives-x64
+        path: natives-x64
+      
+    - uses: actions/setup-java@v1
+      with:
+        java-version: '8'
+        java-package: jdk+fx
+    
+
+    - name: Maven build
+      run: mvn -B -Drevision=$VER package
+      
+    - uses: actions/upload-artifact@v2
+      with:
+        name: java-artifacts
+        path: |
+          swing/target/swing-*.jar
+          swing-demo/target/swing-demo-*.jar
+    
+    - name: List all
+      run: ls -al
+    
+    - name: Prepare Release Artifacts
+      run: |
+        mkdir release
+        echo $SHA > release/sha.txt
+        echo $VER > release/version.txt
+        cp swing/target/swing-*.jar release/
+        cp swing-demo/target/swing-demo-*.jar release/
+        cp -aux natives-x86 release/
+        cp -aux natives-x64 release/
+        cp README.md release/
+        cp LICENSE release/
+        
+    - uses: actions/upload-artifact@v2
+      with:
+        name: release
+        path: release/
+
+  create-release:
+    name: Create Release ${{needs.prepare-version.outputs.version}}
+    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+    needs:
+    - prepare-version
+    - build-java
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    
+    steps:      
+    - name: Download release aritfact
+      uses: actions/download-artifact@v2
+      with:
+        name: release
+        path: release
+          
+    - name: Zip Release Artifacts
+      uses: papeloto/action-zip@v1
+      with: 
+        dest: release.zip
+        files: release/
+         
+    - uses: actions/create-release@v1
+      id: create_release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ needs.prepare-version.outputs.version }}
+        body: |
+          FXNativeEmbed Release ${{ needs.prepare-version.outputs.version }}
+        draft: true
+        prerelease: false
+        
+    - uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./release.zip
+        asset_name: release.zip
+        asset_content_type: application/zip
+      
