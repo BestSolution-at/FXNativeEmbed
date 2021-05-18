@@ -305,6 +305,7 @@ public class FXEmbed extends JComponent {
 			this.fxHandle = 0;
 			
 			stage = null;
+			sceneListener = null;
 		} else {
 			WindowsNative.DestroyWindow(fxHandle);
 		}
