@@ -68,6 +68,13 @@ public class FXEmbed extends JComponent {
 	private Stage stage;
 	private TKSceneListener sceneListener;
 
+	private final ComponentAdapter componentListener = new ComponentAdapter() {
+		@Override
+		public void componentMoved(ComponentEvent e) {
+			desktopPositionChanged();
+		}
+	};
+
 	private FXEmbed() {
 		setLayout(new BorderLayout());
 		enableEvents(
@@ -291,10 +298,14 @@ public class FXEmbed extends JComponent {
 				List<Stage> list = STAGES.get(window);
 				if (list != null) {
 					list.remove(stage);
+					window.removeComponentListener(componentListener);
 				}
 			}
 			getParent().remove(this);
 			this.fxHandle = 0;
+			
+			stage = null;
+			sceneListener = null;
 		} else {
 			WindowsNative.DestroyWindow(fxHandle);
 		}
@@ -325,13 +336,7 @@ public class FXEmbed extends JComponent {
 				return;
 			}
 			
-			window.addComponentListener(new ComponentAdapter() {
-				
-				@Override
-				public void componentMoved(ComponentEvent e) {
-					desktopPositionChanged();
-				}
-			});
+			window.addComponentListener(componentListener);
 
 			Object peer = getAwtWindowPeer(window);
 			long hWnd = getWindowHandle(peer);
