@@ -64,7 +64,7 @@ public class FXEmbed extends JComponent {
 	private static CountDownLatch START_LATCH = new CountDownLatch(1);
 	private static Map<Window, List<Stage>> STAGES = new WeakHashMap<>();
 
-	private long fxHandle;
+	private volatile long fxHandle;
 	private Stage stage;
 	private TKSceneListener sceneListener;
 
@@ -171,10 +171,12 @@ public class FXEmbed extends JComponent {
 	}
 
 	private void updateVisible() {
-		if (isShowing()) {
-			WindowsNative.ShowWindow(fxHandle, WindowsNative.SW_SHOW);
-		} else {
-			WindowsNative.ShowWindow(fxHandle, WindowsNative.SW_HIDE);
+		if( fxHandle != 0 ) {
+			if (isShowing()) {
+				WindowsNative.ShowWindow(fxHandle, WindowsNative.SW_SHOW);
+			} else {
+				WindowsNative.ShowWindow(fxHandle, WindowsNative.SW_HIDE);
+			}	
 		}
 	}
 
@@ -292,6 +294,8 @@ public class FXEmbed extends JComponent {
 	 */
 	public void dispose() {
 		if (stage != null) {
+			this.fxHandle = 0;
+			
 			stage.close();
 			Window window = SwingUtilities.getWindowAncestor(this);
 			if (window != null) {
@@ -302,12 +306,14 @@ public class FXEmbed extends JComponent {
 				}
 			}
 			getParent().remove(this);
-			this.fxHandle = 0;
+			
 			
 			stage = null;
 			sceneListener = null;
 		} else {
-			WindowsNative.DestroyWindow(fxHandle);
+			if( fxHandle != 0 ) {
+				WindowsNative.DestroyWindow(fxHandle);	
+			}
 		}
 	}
 	
@@ -382,16 +388,20 @@ public class FXEmbed extends JComponent {
 	}
 
 	void desktopPositionChanged() {
-		WindowsNative.SendMessage(fxHandle, WindowsNative.WM_MOVE, 0, 0);
+		if( fxHandle != 0 ) {
+			WindowsNative.SendMessage(fxHandle, WindowsNative.WM_MOVE, 0, 0);	
+		}
 	}
 	
 	private void resizeWindow() {
-		Container parent = findRoot(this);
-		Point p = SwingUtilities.convertPoint(this, new Point(0, 0), parent);
-		Rectangle b = getBounds();
-		int flags = WindowsNative.SWP_NOZORDER | WindowsNative.SWP_DRAWFRAME | WindowsNative.SWP_NOACTIVATE | WindowsNative.SWP_ASYNCWINDOWPOS;
-		WindowsNative.SetWindowPos(fxHandle, 0, p.x, p.y, b.width, b.height, flags);
-		desktopPositionChanged();
+		if( fxHandle != 0 ) {
+			Container parent = findRoot(this);
+			Point p = SwingUtilities.convertPoint(this, new Point(0, 0), parent);
+			Rectangle b = getBounds();
+			int flags = WindowsNative.SWP_NOZORDER | WindowsNative.SWP_DRAWFRAME | WindowsNative.SWP_NOACTIVATE | WindowsNative.SWP_ASYNCWINDOWPOS;
+			WindowsNative.SetWindowPos(fxHandle, 0, p.x, p.y, b.width, b.height, flags);
+			desktopPositionChanged();	
+		}
 	}
 	
 	public Dimension getPreferredSize() {
