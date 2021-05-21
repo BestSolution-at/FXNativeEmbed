@@ -307,12 +307,12 @@ public class FXEmbed extends JComponent {
 			}
 			getParent().remove(this);
 			
-			
 			stage = null;
 			sceneListener = null;
 		} else {
 			if( fxHandle != 0 ) {
-				WindowsNative.DestroyWindow(fxHandle);	
+				WindowsNative.DestroyWindow(fxHandle);
+				this.fxHandle = 0;
 			}
 		}
 	}
