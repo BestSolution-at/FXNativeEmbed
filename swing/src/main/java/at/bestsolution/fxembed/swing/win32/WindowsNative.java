@@ -11,6 +11,10 @@ public class WindowsNative {
 	}
 	
     // winuser.h
+    // bool IsWindow(HWND hWnd)
+    public static native long IsWindow(long hWnd);
+	
+    // winuser.h
     // HWND SetParent(HWND hWndChild, HWND hWndNewParent) 
     public static native long SetParent(long hWndChild, long hWndNewParent);
     
