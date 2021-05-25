@@ -4,6 +4,10 @@
 #include <jni.h>
 #include <windows.h>
 
+extern "C" JNIEXPORT jboolean JNICALL Java_at_bestsolution_fxembed_swing_win32_WindowsNative_IsWindow
+(JNIEnv *env, jobject obj, jlong hWnd) {
+    return (jboolean)IsWindow((HWND)hWnd);
+}
 
 extern "C" JNIEXPORT jlong JNICALL Java_at_bestsolution_fxembed_swing_win32_WindowsNative_SetParent
 (JNIEnv *env, jobject obj, jlong hWndChild, jlong hWndNewParent) {
