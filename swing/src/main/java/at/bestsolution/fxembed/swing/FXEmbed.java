@@ -100,13 +100,13 @@ public class FXEmbed extends JComponent {
 	protected void processComponentEvent(ComponentEvent e) {
 		if( ComponentEvent.COMPONENT_RESIZED == e.getID()
 				|| ComponentEvent.COMPONENT_MOVED == e.getID())  {
-			if (fxHandle != 0) {
+			if (windowExists()) {
 				resizeWindow();
 			}			
 		}
 		super.processComponentEvent(e);
 	}
-	
+
 	private void forwardMouseWheel(MouseWheelEvent e) {
 		TKSceneListener tkSceneListener = getTKSceneListener();
 		double unitsToScrollX = 0;
@@ -171,7 +171,7 @@ public class FXEmbed extends JComponent {
 	}
 
 	private void updateVisible() {
-		if( fxHandle != 0 ) {
+		if( windowExists() ) {
 			if (isShowing()) {
 				WindowsNative.ShowWindow(fxHandle, WindowsNative.SW_SHOW);
 			} else {
@@ -310,7 +310,7 @@ public class FXEmbed extends JComponent {
 			stage = null;
 			sceneListener = null;
 		} else {
-			if( fxHandle != 0 ) {
+			if( windowExists() ) {
 				WindowsNative.DestroyWindow(fxHandle);
 				this.fxHandle = 0;
 			}
@@ -388,13 +388,13 @@ public class FXEmbed extends JComponent {
 	}
 
 	void desktopPositionChanged() {
-		if( fxHandle != 0 ) {
+		if( windowExists() ) {
 			WindowsNative.SendMessage(fxHandle, WindowsNative.WM_MOVE, 0, 0);	
 		}
 	}
 	
 	private void resizeWindow() {
-		if( fxHandle != 0 ) {
+		if( windowExists() ) {
 			Container parent = findRoot(this);
 			Point p = SwingUtilities.convertPoint(this, new Point(0, 0), parent);
 			Rectangle b = getBounds();
@@ -445,6 +445,10 @@ public class FXEmbed extends JComponent {
 			c = c.getParent();
 		}
 		return c;
+	}
+	
+	private boolean windowExists() {
+		return fxHandle != 0 && WindowsNative.IsWindow(fxHandle) != 0;
 	}
 
 	@Deprecated
