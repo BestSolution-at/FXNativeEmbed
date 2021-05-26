@@ -3,11 +3,23 @@
  */
 package at.bestsolution.fxembed.swing.win32;
 
+import java.io.IOException;
+
+import at.bestsolution.fxembed.swing.NativeLibraryLoader;
+
 @SuppressWarnings("javadoc")
 public class WindowsNative {
+	
+	private static final String I686 = "i686";
+	private static final String X64 = "x64";
     
 	static {
-		System.loadLibrary("WindowsNative");
+		try {
+			String architecture = System.getProperty("os.arch");
+			NativeLibraryLoader.load("WindowsNative", "lib/" + (architecture.endsWith("64") ? X64 : I686));
+		} catch (IOException | UnsatisfiedLinkError ex) {
+			System.loadLibrary("WindowsNative");
+		}
 	}
 	
     // winuser.h

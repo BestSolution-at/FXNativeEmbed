@@ -63,6 +63,45 @@
 				</plugins>
 			</build>
 		</profile>
+		
+		<profile>
+			<id>standalone-build</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>create-bundle</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<descriptorRefs>
+										<descriptorRef>jar-with-dependencies</descriptorRef>
+									</descriptorRefs>
+								</configuration>
+							</execution>
+						</executions>
+						<configuration>
+							<archive>
+								<manifest>
+								<!-- 
+									<mainClass>at.bestsolution.fxembed.swing.demo.TabbedFxEmbed</mainClass>
+								-->
+									<mainClass>at.bestsolution.fxembed.swing.demo.FXEmbedDemo</mainClass>
+								</manifest>
+							</archive>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
 
 	</profiles>
 </project>
