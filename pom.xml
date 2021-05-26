@@ -91,10 +91,10 @@
 						<configuration>
 							<archive>
 								<manifest>
-								<!-- 
 									<mainClass>at.bestsolution.fxembed.swing.demo.TabbedFxEmbed</mainClass>
-								-->
+								<!-- 
 									<mainClass>at.bestsolution.fxembed.swing.demo.FXEmbedDemo</mainClass>
+								-->
 								</manifest>
 							</archive>
 						</configuration>
