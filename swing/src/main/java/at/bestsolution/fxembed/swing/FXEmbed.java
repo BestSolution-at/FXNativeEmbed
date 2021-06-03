@@ -296,8 +296,8 @@ public class FXEmbed extends JComponent {
 		if (stage != null) {
 			this.fxHandle = 0;
 			
-			stage.close();
 			Window window = SwingUtilities.getWindowAncestor(this);
+			stage.close();
 			if (window != null) {
 				List<Stage> list = STAGES.get(window);
 				if (list != null) {
