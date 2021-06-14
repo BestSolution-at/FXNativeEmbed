@@ -227,7 +227,6 @@ public class FXEmbed extends JComponent {
 				//using UTILITY prevents the stage from showing up in the taskbar
 				s.initStyle(StageStyle.UTILITY);
 				Scene sc = new Scene(new Group());
-				s.setScene(sc);
 				// Make sure the native window is not shown to the user before we reparent it
 				s.setOpacity(0);
 				s.show();
@@ -235,6 +234,11 @@ public class FXEmbed extends JComponent {
 				embedder.setFXHandle(s, rawHandle, false);
 				consumer.accept(sc);
 				embedder.stage = s;
+				/*
+				 * the scene must be put into the stage only after reparenting,
+				 * otherwise popups will appear a few pixels too low (as if a window title bar was there) 
+				 */
+				s.setScene(sc);
 			});
 		});
 		t.start();
