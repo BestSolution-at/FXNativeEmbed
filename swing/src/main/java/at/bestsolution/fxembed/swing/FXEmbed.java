@@ -224,15 +224,16 @@ public class FXEmbed extends JComponent {
 			}
 			Platform.runLater(() -> {
 				Stage s = new Stage();
-				s.initStyle(StageStyle.UNDECORATED);
+				//using UTILITY prevents the stage from showing up in the taskbar
+				s.initStyle(StageStyle.UTILITY);
 				Scene sc = new Scene(new Group());
-				consumer.accept(sc);
 				s.setScene(sc);
 				// Make sure the native window is not shown to the user before we reparent it
 				s.setOpacity(0);
 				s.show();
 				long rawHandle = getWindowHandle(s);
 				embedder.setFXHandle(s, rawHandle, false);
+				consumer.accept(sc);
 				embedder.stage = s;
 			});
 		});
