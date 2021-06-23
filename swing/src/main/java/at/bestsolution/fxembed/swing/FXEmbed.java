@@ -354,7 +354,6 @@ public class FXEmbed extends JComponent {
 			long style = WindowsNative.GetWindowLongPtrW(handle,  WindowsNative.GWL_STYLE);
 			style = (style & ~(WindowsNative.WS_POPUP) & ~(WindowsNative.WS_CAPTION) & ~(WindowsNative.WS_THICKFRAME) & ~(WindowsNative.WS_MAXIMIZEBOX) & ~(WindowsNative.WS_MINIMIZEBOX)
 					& ~(WindowsNative.WS_SYSMENU) & ~(WindowsNative.WS_OVERLAPPED));
-			style |= WindowsNative.WS_CHILD;
 			WindowsNative.SetWindowLongPtrW(handle, WindowsNative.GWL_STYLE, style);
 			WindowsNative.SetParent(handle, hWnd);
 			desktopPositionChanged();
