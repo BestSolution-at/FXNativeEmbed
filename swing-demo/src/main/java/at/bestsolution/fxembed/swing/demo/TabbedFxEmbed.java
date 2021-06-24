@@ -12,6 +12,7 @@ import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.layout.VBox;
 
 public class TabbedFxEmbed {
 	
@@ -58,7 +59,13 @@ public class TabbedFxEmbed {
 	}
 
 	private static void launchNew(Scene scene) {
-		scene.setRoot(new MyLabel(Integer.toString(counter)));
+		VBox content = new VBox();
+		Label fxEmbedVersion = new Label(System.getProperty("fxembed.version"));
+		Label fxEmbedTimestamp = new Label(System.getProperty("fxembed.build.timestamp"));
+		MyLabel myLabel = new MyLabel(Integer.toString(counter));
+		content.setSpacing(10);
+		content.getChildren().addAll(fxEmbedVersion, fxEmbedTimestamp, myLabel);
+		scene.setRoot(content);
 		counter = counter + 1;
 	}
 	
