@@ -76,6 +76,8 @@ public class FXEmbed extends JComponent {
 	};
 
 	private FXEmbed() {
+		System.setProperty("fxembed.version", VersionInfoUtil.getVersion());
+		System.setProperty("fxembed.build.timestamp", VersionInfoUtil.getBuildTimestamp());
 		setLayout(new BorderLayout());
 		enableEvents(
 				InputEvent.COMPONENT_EVENT_MASK
