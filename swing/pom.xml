@@ -8,6 +8,12 @@
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 	<artifactId>swing</artifactId>
+	<dependencies>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+		</dependency>
+	</dependencies>
 	<build>
 		<plugins>
 			<plugin>

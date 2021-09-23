@@ -36,6 +36,9 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.sun.javafx.tk.TKScene;
 import com.sun.javafx.tk.TKSceneListener;
 import com.sun.javafx.tk.TKStage;
@@ -55,6 +58,8 @@ import javafx.stage.StageStyle;
  */
 @SuppressWarnings({ "restriction" })
 public class FXEmbed extends JComponent {
+	
+	private static final Logger logger = LoggerFactory.getLogger(FXEmbed.class);
 	/**
 	 * 
 	 */
@@ -76,6 +81,7 @@ public class FXEmbed extends JComponent {
 	};
 
 	private FXEmbed() {
+		logger.info("[FXEmbed] initialize component...");
 		System.setProperty("fxembed.version", VersionInfoUtil.getVersion());
 		System.setProperty("fxembed.build.timestamp", VersionInfoUtil.getBuildTimestamp());
 		setLayout(new BorderLayout());
@@ -84,6 +90,7 @@ public class FXEmbed extends JComponent {
 				| InputEvent.MOUSE_WHEEL_EVENT_MASK
 				| AWTEvent.HIERARCHY_EVENT_MASK);
 		add(new JLabel("Initializing ...", JLabel.CENTER), BorderLayout.CENTER);
+		logger.info("[FXEmbed] finished initializing component");
 	}
 	
 	@Override
@@ -173,16 +180,24 @@ public class FXEmbed extends JComponent {
 	}
 
 	private void updateVisible() {
+		logger.info("[FXEmbed] updateVisible() START");
 		if( windowExists() ) {
+			logger.info("[FXEmbed] window exists");
 			if (isShowing()) {
+				logger.info("[FXEmbed] window is showing");
 				WindowsNative.ShowWindow(fxHandle, WindowsNative.SW_SHOW);
 			} else {
+				logger.info("[FXEmbed] window is not showing");
 				WindowsNative.ShowWindow(fxHandle, WindowsNative.SW_HIDE);
 			}	
+		} else {
+			logger.info("[FXEmbed] window does not exist");
 		}
+		logger.info("[FXEmbed] updateVisible() FINISH");
 	}
 
 	private static void bootstrapFX() throws InterruptedException {
+		logger.info("[FXEmbed] bootstrapping FX...");
 		if (!FX_LAUNCHED) {
 			FX_LAUNCHED = true;
 			Thread t = new Thread(() -> {
@@ -192,6 +207,7 @@ public class FXEmbed extends JComponent {
 			t.start();
 		}
 		START_LATCH.await();
+		logger.info("[FXEmbed] FX boostrapped");
 	}
 
 	/**
@@ -300,6 +316,7 @@ public class FXEmbed extends JComponent {
 	 * Dispose the component releasing the native resources
 	 */
 	public void dispose() {
+		logger.info("[FXEmbed] disposing...");
 		if (stage != null) {
 			this.fxHandle = 0;
 			
@@ -322,6 +339,7 @@ public class FXEmbed extends JComponent {
 				this.fxHandle = 0;
 			}
 		}
+		logger.info("[FXEmbed] disposed");
 	}
 	
 	private long getWindowHandle(Object peer) {
@@ -395,13 +413,18 @@ public class FXEmbed extends JComponent {
 	}
 
 	void desktopPositionChanged() {
+		logger.info("[FXEmbed] desktopPositionChanged...");
 		if( windowExists() ) {
+			logger.info("[FXEmbed] window exists, sending WM_MOVE message...");
 			WindowsNative.SendMessage(fxHandle, WindowsNative.WM_MOVE, 0, 0);	
 		}
+		logger.info("[FXEmbed] desktopPositionChanged finished");
 	}
 	
 	private void resizeWindow() {
+		logger.info("[FXEmbed] resizeWindow...");
 		if( windowExists() ) {
+			logger.info("[FXEmbed] window exists, going to call setWindowPos");
 			Container parent = findRoot(this);
 			Point p = SwingUtilities.convertPoint(this, new Point(0, 0), parent);
 			Rectangle b = getBounds();
@@ -409,18 +432,23 @@ public class FXEmbed extends JComponent {
 			WindowsNative.SetWindowPos(fxHandle, 0, p.x, p.y, b.width, b.height, flags);
 			desktopPositionChanged();	
 		}
+		logger.info("[FXEmbed] resizeWindow finished");
 	}
 	
 	public Dimension getPreferredSize() {
-        if (isPreferredSizeSet() || fxHandle == 0) {
-            return super.getPreferredSize();
+		logger.info("[FXEmbed] getPreferredSize...");
+		final Dimension prefSize;
+		if (isPreferredSizeSet() || fxHandle == 0) {
+            prefSize = super.getPreferredSize();
+        } else {
+        	prefSize = runSync( () -> {
+            	double w = stage.getScene().getRoot().prefWidth(getBounds().getHeight());
+                double h = stage.getScene().getRoot().prefHeight(getBounds().getWidth());
+                return new Dimension((int)w, (int)h);	
+            });
         }
-        
-        return runSync( () -> {
-        	double w = stage.getScene().getRoot().prefWidth(getBounds().getHeight());
-            double h = stage.getScene().getRoot().prefHeight(getBounds().getWidth());
-            return new Dimension((int)w, (int)h);	
-        });
+		logger.info("[FXEmbed] getPreferredSize returns {}X{}", prefSize.width, prefSize.height);
+		return prefSize;
     }
 
 	private static <T> T runSync( Supplier<T> s) {
@@ -474,6 +502,7 @@ public class FXEmbed extends JComponent {
 		}
 
 		public void windowClosing(WindowEvent e) {
+			logger.info("[FXEmbed] WindowAdapter closing");
 			runSync( () -> {
 				STAGES.get(window).forEach(Stage::hide);
 			});
