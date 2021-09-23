@@ -36,6 +36,9 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.sun.javafx.tk.TKScene;
 import com.sun.javafx.tk.TKSceneListener;
 import com.sun.javafx.tk.TKStage;
@@ -55,6 +58,8 @@ import javafx.stage.StageStyle;
  */
 @SuppressWarnings({ "restriction" })
 public class FXEmbed extends JComponent {
+	
+	private static final Logger logger = LoggerFactory.getLogger(FXEmbed.class);
 	/**
 	 * 
 	 */
@@ -76,6 +81,7 @@ public class FXEmbed extends JComponent {
 	};
 
 	private FXEmbed() {
+		logger.info("[FXEmbed] initialize component...");
 		System.setProperty("fxembed.version", VersionInfoUtil.getVersion());
 		System.setProperty("fxembed.build.timestamp", VersionInfoUtil.getBuildTimestamp());
 		setLayout(new BorderLayout());
@@ -84,6 +90,7 @@ public class FXEmbed extends JComponent {
 				| InputEvent.MOUSE_WHEEL_EVENT_MASK
 				| AWTEvent.HIERARCHY_EVENT_MASK);
 		add(new JLabel("Initializing ...", JLabel.CENTER), BorderLayout.CENTER);
+		logger.info("[FXEmbed] finished initializing component");
 	}
 	
 	@Override
@@ -173,12 +180,21 @@ public class FXEmbed extends JComponent {
 	}
 
 	private void updateVisible() {
+		logger.info("[FXEmbed] FXEmbed.updateVisible()");
 		if( windowExists() ) {
+			logger.info("[FXEmbed] window exists...");
 			if (isShowing()) {
-				WindowsNative.ShowWindow(fxHandle, WindowsNative.SW_SHOW);
+				logger.info("[FXEmbed] window is showing...");
+				boolean showWindow = WindowsNative.ShowWindow(fxHandle, WindowsNative.SW_SHOW);
+				logger.info("[FXEmbed] show window -> " + showWindow);
 			} else {
-				WindowsNative.ShowWindow(fxHandle, WindowsNative.SW_HIDE);
+				logger.info("[FXEmbed] window is not showing...");
+				boolean showWindow = WindowsNative.ShowWindow(fxHandle, WindowsNative.SW_HIDE);
+				logger.info("[FXEmbed] show window -> " + showWindow);
 			}	
+		}
+		else {
+			logger.info("[FXEmbed] window does not exist...");
 		}
 	}
 
