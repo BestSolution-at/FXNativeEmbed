@@ -110,7 +110,7 @@ public class FXEmbed extends JComponent {
 		if( ComponentEvent.COMPONENT_RESIZED == e.getID()
 				|| ComponentEvent.COMPONENT_MOVED == e.getID())  {
 			if (windowExists()) {
-				resizeWindow();
+				resizeWindow(0);
 			}			
 		}
 		super.processComponentEvent(e);
@@ -178,14 +178,25 @@ public class FXEmbed extends JComponent {
 		}
 		return sceneListener;
 	}
-
+	
 	private void updateVisible() {
+		if( windowExists() ) {
+			Platform.runLater( () -> {
+				_updateVisible();
+			});
+		}
+	}
+
+	private void _updateVisible() {
 		logger.info("[FXEmbed] updateVisible() START");
 		if( windowExists() ) {
 			logger.info("[FXEmbed] window exists");
 			if (isShowing()) {
 				logger.info("[FXEmbed] window is showing");
 				WindowsNative.ShowWindow(fxHandle, WindowsNative.SW_SHOW);
+				// Looks like a problem in FX-Applications
+				resizeWindow(1);
+				resizeWindow(0);
 			} else {
 				logger.info("[FXEmbed] window is not showing");
 				WindowsNative.ShowWindow(fxHandle, WindowsNative.SW_HIDE);
@@ -396,8 +407,10 @@ public class FXEmbed extends JComponent {
 
 			if (!isShowing()) {
 				updateVisible();
+			} else {
+				logger.info("[FXEmbed] Window not showing");
 			}
-			resizeWindow();
+			resizeWindow(0);
 			revalidate();
 		});
 	}
@@ -421,15 +434,21 @@ public class FXEmbed extends JComponent {
 		logger.info("[FXEmbed] desktopPositionChanged finished");
 	}
 	
-	private void resizeWindow() {
+	private void resizeWindow(int delta) {
 		logger.info("[FXEmbed] resizeWindow...");
 		if( windowExists() ) {
 			logger.info("[FXEmbed] window exists, going to call setWindowPos");
 			Container parent = findRoot(this);
 			Point p = SwingUtilities.convertPoint(this, new Point(0, 0), parent);
 			Rectangle b = getBounds();
+			int x = p.x;
+			int y = p.y;
+			int width = b.width - delta;
+			int height = b.height;
+			logger.info("[FXEmebd] resizing to: " + x + "/" + y + "/" + width + "/" + height);
+			
 			int flags = WindowsNative.SWP_NOZORDER | WindowsNative.SWP_DRAWFRAME | WindowsNative.SWP_NOACTIVATE | WindowsNative.SWP_ASYNCWINDOWPOS;
-			WindowsNative.SetWindowPos(fxHandle, 0, p.x, p.y, b.width, b.height, flags);
+			WindowsNative.SetWindowPos(fxHandle, 0, x, y, width, height, flags);
 			desktopPositionChanged();	
 		}
 		logger.info("[FXEmbed] resizeWindow finished");
