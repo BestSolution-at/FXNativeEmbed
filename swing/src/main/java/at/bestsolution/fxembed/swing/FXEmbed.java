@@ -72,6 +72,8 @@ public class FXEmbed extends JComponent {
 	private volatile long fxHandle;
 	private Stage stage;
 	private TKSceneListener sceneListener;
+	
+	private static boolean WIN32_ON_FXTHREAD = Boolean.getBoolean("fxembed.force.win32-fx");
 
 	private final ComponentAdapter componentListener = new ComponentAdapter() {
 		@Override
@@ -179,16 +181,26 @@ public class FXEmbed extends JComponent {
 		return sceneListener;
 	}
 	
-	private void updateVisible() {
-		if( windowExists() ) {
-			Platform.runLater( () -> {
-				_updateVisible();
-			});
+	private void forceWin32FX(Runnable r) {
+		if( WIN32_ON_FXTHREAD ) {
+			if( windowExists() ) {
+				if( Platform.isFxApplicationThread() ) {
+					r.run();
+				} else {
+					Platform.runLater( r );	
+				}
+			}
+		} else {
+			r.run();
 		}
+	}
+	
+	private void updateVisible() {
+		forceWin32FX(this::_updateVisible); 
 	}
 
 	private void _updateVisible() {
-		logger.info("[FXEmbed] updateVisible() START");
+		logger.info("[FXEmbed] updateVisible() START on thread {}", Thread.currentThread());
 		if( windowExists() ) {
 			logger.info("[FXEmbed] window exists");
 			if (isShowing()) {
@@ -424,9 +436,13 @@ public class FXEmbed extends JComponent {
 			throw new RuntimeException(e);
 		}
 	}
-
+	
 	void desktopPositionChanged() {
-		logger.info("[FXEmbed] desktopPositionChanged...");
+		forceWin32FX(this::_desktopPositionChanged);
+	}
+
+	private void _desktopPositionChanged() {
+		logger.info("[FXEmbed] desktopPositionChanged on thread {}", Thread.currentThread());
 		if( windowExists() ) {
 			logger.info("[FXEmbed] window exists, sending WM_MOVE message...");
 			WindowsNative.SendMessage(fxHandle, WindowsNative.WM_MOVE, 0, 0);	
@@ -435,7 +451,11 @@ public class FXEmbed extends JComponent {
 	}
 	
 	private void resizeWindow(int delta) {
-		logger.info("[FXEmbed] resizeWindow...");
+		forceWin32FX( () -> _resizeWindow(delta));
+	}
+	
+	private void _resizeWindow(int delta) {
+		logger.info("[FXEmbed] resizeWindow on thread {}", Thread.currentThread());
 		if( windowExists() ) {
 			logger.info("[FXEmbed] window exists, going to call setWindowPos");
 			Container parent = findRoot(this);
