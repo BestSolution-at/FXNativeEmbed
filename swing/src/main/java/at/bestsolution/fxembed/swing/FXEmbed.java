@@ -24,6 +24,8 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.WeakHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -74,6 +76,7 @@ public class FXEmbed extends JComponent {
 	private TKSceneListener sceneListener;
 	
 	private static boolean WIN32_ON_FXTHREAD = Boolean.getBoolean("fxembed.force.win32-fx");
+	private static boolean ENABLE_FX_THREAD_HEARTBEAT_CHECK = Boolean.getBoolean("fxembed.heartbeat.enabled");
 
 	private final ComponentAdapter componentListener = new ComponentAdapter() {
 		@Override
@@ -230,6 +233,12 @@ public class FXEmbed extends JComponent {
 			t.start();
 		}
 		START_LATCH.await();
+		
+		if( ENABLE_FX_THREAD_HEARTBEAT_CHECK ) {
+			Timer t = new Timer(true);
+			t.scheduleAtFixedRate(new HeartBeatTask(), 0, 1000 * 10);	
+		}
+		
 		logger.info("[FXEmbed] FX boostrapped");
 	}
 
@@ -506,10 +515,12 @@ public class FXEmbed extends JComponent {
 	        	l.countDown();
 	        });
 			try {
-				l.await(5000,TimeUnit.MILLISECONDS);
+				if( ! l.await(5000,TimeUnit.MILLISECONDS) ) {
+					logger.error("[FXEmebd] Execution took more than 5 seconds");
+				}
 			} catch (InterruptedException e) {
 				
-			}	
+			}
 		}
 		
 	}
@@ -523,6 +534,32 @@ public class FXEmbed extends JComponent {
 	
 	private boolean windowExists() {
 		return fxHandle != 0 && WindowsNative.IsWindow(fxHandle) != 0;
+	}
+	
+	private static class HeartBeatTask extends TimerTask {
+
+		@Override
+		public void run() {
+			long start = System.currentTimeMillis();
+			CountDownLatch l = new CountDownLatch(1);
+			Platform.runLater( () -> {
+				l.countDown();
+				long end = System.currentTimeMillis();
+				if( end - start > 2000 ) {
+					logger.warn("[FXEmbed] Looks like something blocked the UI-Thread a bit longer than expected. Time to run {}", end - start);
+				} else {
+					logger.trace("[FXEmbed] Heartbeat check successful");
+				}
+			});
+			try {
+				if( ! l.await(30, TimeUnit.SECONDS) ) {
+					logger.error("[FXEmbed] Detected deadlock");
+				}
+			} catch (InterruptedException e) {
+				
+			}
+		}
+		
 	}
 
 	@Deprecated
