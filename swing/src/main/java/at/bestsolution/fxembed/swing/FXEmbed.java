@@ -390,12 +390,14 @@ public class FXEmbed extends JComponent {
 			Window window = SwingUtilities.getWindowAncestor(this);
 			if (window == null) {
 				// FIXME We need to handle this situation
+				logger.warn("[FXEmbed] getWindowAncestor() returned null");
 				return;
 			}
 
 			
 			if (!window.isDisplayable()) {
 				// FIXME We need to handle this situation
+				logger.warn("[FXEmbed] getWindowAncestor().isDisplayable() == false");
 				return;
 			}
 			
