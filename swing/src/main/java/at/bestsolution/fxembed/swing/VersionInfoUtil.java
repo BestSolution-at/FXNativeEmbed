@@ -1,3 +1,6 @@
+/**
+ * Copyright (C) 2021 - BestSolution.at
+ */
 package at.bestsolution.fxembed.swing;
 
 import java.io.InputStream;
