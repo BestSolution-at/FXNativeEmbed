@@ -28,6 +28,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.WeakHashMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -77,6 +79,7 @@ public class FXEmbed extends JComponent {
 	
 	private static boolean WIN32_ON_FXTHREAD = Boolean.getBoolean("fxembed.force.win32-fx");
 	private static boolean ENABLE_FX_THREAD_HEARTBEAT_CHECK = Boolean.getBoolean("fxembed.heartbeat.enabled");
+	private static long SCENE_CONSUMER_DELAY;
 
 	private final ComponentAdapter componentListener = new ComponentAdapter() {
 		@Override
@@ -89,6 +92,10 @@ public class FXEmbed extends JComponent {
 		logger.info("[FXEmbed] initialize component...");
 		System.setProperty("fxembed.version", VersionInfoUtil.getVersion());
 		System.setProperty("fxembed.build.timestamp", VersionInfoUtil.getBuildTimestamp());
+		
+		Long sceneConsumerDelayProperty = Long.getLong("fxembed.sceneconsumer.delay");
+		SCENE_CONSUMER_DELAY = sceneConsumerDelayProperty != null ? sceneConsumerDelayProperty : 500;
+			
 		setLayout(new BorderLayout());
 		enableEvents(
 				InputEvent.COMPONENT_EVENT_MASK
@@ -230,6 +237,7 @@ public class FXEmbed extends JComponent {
 				Platform.setImplicitExit(false);
 				Application.launch(Launcher.class);
 			});
+			t.setName("bootstrap FxEmbed");
 			t.start();
 		}
 		START_LATCH.await();
@@ -282,15 +290,23 @@ public class FXEmbed extends JComponent {
 				s.show();
 				long rawHandle = getWindowHandle(s);
 				embedder.setFXHandle(s, rawHandle, false);
-				consumer.accept(sc);
 				embedder.stage = s;
-				/*
-				 * the scene must be put into the stage only after reparenting,
-				 * otherwise popups will appear a few pixels too low (as if a window title bar was there) 
-				 */
-				s.setScene(sc);
+				
+				ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+				executor.schedule(() -> Platform.runLater(() -> {
+					/*
+					 * the scene must be put into the stage only after reparenting,
+					 * otherwise popups will appear a few pixels too low (as if a window title bar was there) 
+					 */
+					consumer.accept(sc);
+					s.setScene(sc);
+					embedder.resizeWindow(0);
+				}), SCENE_CONSUMER_DELAY, TimeUnit.MILLISECONDS);
+
+				executor.shutdown();
 			});
 		});
+		t.setName("create FxEmbed");
 		t.start();
 
 		return embedder;
