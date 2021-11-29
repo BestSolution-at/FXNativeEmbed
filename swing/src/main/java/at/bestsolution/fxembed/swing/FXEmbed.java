@@ -203,23 +203,23 @@ public class FXEmbed extends JComponent {
 	}
 
 	private void _updateVisible() {
-		logger.info("[FXEmbed] updateVisible() START on thread {}", Thread.currentThread());
+		logger.debug("[FXEmbed] updateVisible() START on thread {}", Thread.currentThread());
 		if( windowExists() ) {
-			logger.info("[FXEmbed] window exists");
+			logger.debug("[FXEmbed] window exists");
 			if (isShowing()) {
-				logger.info("[FXEmbed] window is showing");
+				logger.debug("[FXEmbed] window is showing");
 				WindowsNative.ShowWindow(fxHandle, WindowsNative.SW_SHOW);
 				// Looks like a problem in FX-Applications
 				resizeWindow(1);
 				resizeWindow(0);
 			} else {
-				logger.info("[FXEmbed] window is not showing");
+				logger.debug("[FXEmbed] window is not showing");
 				WindowsNative.ShowWindow(fxHandle, WindowsNative.SW_HIDE);
 			}	
 		} else {
-			logger.info("[FXEmbed] window does not exist");
+			logger.debug("[FXEmbed] window does not exist");
 		}
-		logger.info("[FXEmbed] updateVisible() FINISH");
+		logger.debug("[FXEmbed] updateVisible() FINISH");
 	}
 
 	private static void bootstrapFX() throws InterruptedException {
@@ -431,7 +431,7 @@ public class FXEmbed extends JComponent {
 			if (!isShowing()) {
 				updateVisible();
 			} else {
-				logger.info("[FXEmbed] Window not showing");
+				logger.debug("[FXEmbed] Window not showing");
 			}
 			resizeWindow(0);
 			revalidate();
@@ -453,12 +453,12 @@ public class FXEmbed extends JComponent {
 	}
 
 	private void _desktopPositionChanged() {
-		logger.info("[FXEmbed] desktopPositionChanged on thread {}", Thread.currentThread());
+		logger.debug("[FXEmbed] desktopPositionChanged on thread {}", Thread.currentThread());
 		if( windowExists() ) {
-			logger.info("[FXEmbed] window exists, sending WM_MOVE message...");
+			logger.debug("[FXEmbed] window exists, sending WM_MOVE message...");
 			WindowsNative.SendMessage(fxHandle, WindowsNative.WM_MOVE, 0, 0);	
 		}
-		logger.info("[FXEmbed] desktopPositionChanged finished");
+		logger.debug("[FXEmbed] desktopPositionChanged finished");
 	}
 	
 	private void resizeWindow(int delta) {
@@ -466,9 +466,9 @@ public class FXEmbed extends JComponent {
 	}
 	
 	private void _resizeWindow(int delta) {
-		logger.info("[FXEmbed] resizeWindow on thread {}", Thread.currentThread());
+		logger.debug("[FXEmbed] resizeWindow on thread {}", Thread.currentThread());
 		if( windowExists() ) {
-			logger.info("[FXEmbed] window exists, going to call setWindowPos");
+			logger.debug("[FXEmbed] window exists, going to call setWindowPos");
 			Container parent = findRoot(this);
 			Point p = SwingUtilities.convertPoint(this, new Point(0, 0), parent);
 			Rectangle b = getBounds();
@@ -476,17 +476,17 @@ public class FXEmbed extends JComponent {
 			int y = p.y;
 			int width = b.width - delta;
 			int height = b.height;
-			logger.info("[FXEmebd] resizing to: " + x + "/" + y + "/" + width + "/" + height);
+			logger.debug("[FXEmebd] resizing to: " + x + "/" + y + "/" + width + "/" + height);
 			
 			int flags = WindowsNative.SWP_NOZORDER | WindowsNative.SWP_DRAWFRAME | WindowsNative.SWP_NOACTIVATE | WindowsNative.SWP_ASYNCWINDOWPOS;
 			WindowsNative.SetWindowPos(fxHandle, 0, x, y, width, height, flags);
 			desktopPositionChanged();	
 		}
-		logger.info("[FXEmbed] resizeWindow finished");
+		logger.debug("[FXEmbed] resizeWindow finished");
 	}
 	
 	public Dimension getPreferredSize() {
-		logger.info("[FXEmbed] getPreferredSize...");
+		logger.debug("[FXEmbed] getPreferredSize...");
 		final Dimension prefSize;
 		if (isPreferredSizeSet() || fxHandle == 0) {
             prefSize = super.getPreferredSize();
@@ -497,7 +497,7 @@ public class FXEmbed extends JComponent {
                 return new Dimension((int)w, (int)h);	
             });
         }
-		logger.info("[FXEmbed] getPreferredSize returns {}X{}", prefSize.width, prefSize.height);
+		logger.debug("[FXEmbed] getPreferredSize returns {}X{}", prefSize.width, prefSize.height);
 		return prefSize;
     }
 
