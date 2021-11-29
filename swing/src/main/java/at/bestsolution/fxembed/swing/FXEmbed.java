@@ -301,8 +301,9 @@ public class FXEmbed extends JComponent {
 					consumer.accept(sc);
 					s.setScene(sc);
 					embedder.resizeWindow(0);
-					executor.shutdown();
 				}), SCENE_CONSUMER_DELAY, TimeUnit.MILLISECONDS);
+
+				executor.shutdown();
 			});
 		});
 		t.setName("create FxEmbed");
