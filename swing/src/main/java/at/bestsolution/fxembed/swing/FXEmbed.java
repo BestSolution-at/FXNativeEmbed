@@ -8,6 +8,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Window;
@@ -18,6 +19,7 @@ import java.awt.event.InputEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.image.BufferedImage;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -50,8 +52,11 @@ import com.sun.javafx.tk.TKStage;
 import at.bestsolution.fxembed.swing.win32.WindowsNative;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.Group;
 import javafx.scene.Scene;
+import javafx.scene.SnapshotParameters;
+import javafx.scene.image.WritableImage;
 import javafx.scene.input.ScrollEvent;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -516,6 +521,28 @@ public class FXEmbed extends JComponent {
 		logger.debug("[FXEmbed] getPreferredSize returns {}X{}", prefSize.width, prefSize.height);
 		return prefSize;
     }
+
+	@Override
+	protected void printChildren(Graphics g) {
+		if (stage != null) {
+			//no-op: super.printChildren(g); would print the "Initializing ..." JLabel
+		} else {
+			super.printChildren(g);
+		}
+	}
+
+	@Override
+	protected void printComponent(Graphics g) {
+		if (stage != null) {
+			runSync(() -> { 
+				WritableImage snapshot = stage.getScene().getRoot().snapshot(new SnapshotParameters(), null);
+				final BufferedImage img = SwingFXUtils.fromFXImage(snapshot, null);
+				g.drawImage(img, 0, 0, null);
+			});
+		} else {
+			super.printComponent(g);
+		}
+	}
 
 	private static <T> T runSync( Supplier<T> s) {
 		AtomicReference<T> r = new AtomicReference<>();
