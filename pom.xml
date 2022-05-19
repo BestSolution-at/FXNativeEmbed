@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>at.bestsolution.fxnativeembed</groupId>
 	<artifactId>parent</artifactId>
-	<version>0.0.4-SNAPSHOT</version>
+	<version>0.0.5-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<properties>
@@ -41,12 +41,12 @@
 			<id>deploy-bestsolution</id>
 			<distributionManagement>
 				<repository>
-					<id>efxclipse-releases</id>
-					<url>http://rattenschwanz.bestsolution.at:8081/nexus/content/repositories/efxclipse-releases</url>
+					<id>oss-releases</id>
+					<url>https://maven.bestsolution.at/deploy/releases/</url>
 				</repository>
 				<snapshotRepository>
-					<id>efxclipse-snapshots</id>
-					<url>http://rattenschwanz.bestsolution.at:8081/nexus/content/repositories/efxclipse-snapshots</url>
+					<id>oss-snapshots</id>
+					<url>https://maven.bestsolution.at/deploy/snapshots</url>
 				</snapshotRepository>
 			</distributionManagement>
 			<build>
