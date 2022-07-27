@@ -491,17 +491,19 @@ public class FXEmbed extends JComponent {
 		if( windowExists() ) {
 			logger.debug("[FXEmbed] window exists, going to call setWindowPos");
 			Container parent = findRoot(this);
-			Point p = SwingUtilities.convertPoint(this, new Point(0, 0), parent);
-			Rectangle b = getBounds();
-			int x = p.x;
-			int y = p.y;
-			int width = b.width - delta;
-			int height = b.height;
-			logger.debug("[FXEmebd] resizing to: " + x + "/" + y + "/" + width + "/" + height);
-			
-			int flags = WindowsNative.SWP_NOZORDER | WindowsNative.SWP_DRAWFRAME | WindowsNative.SWP_NOACTIVATE | WindowsNative.SWP_ASYNCWINDOWPOS;
-			WindowsNative.SetWindowPos(fxHandle, 0, x, y, width, height, flags);
-			desktopPositionChanged();	
+			SwingUtilities.invokeLater( () -> {
+				Point p = SwingUtilities.convertPoint(this, new Point(0, 0), parent);
+				Rectangle b = getBounds();
+				int x = p.x;
+				int y = p.y;
+				int width = b.width - delta;
+				int height = b.height;
+				logger.debug("[FXEmebd] resizing to: " + x + "/" + y + "/" + width + "/" + height);
+				
+				int flags = WindowsNative.SWP_NOZORDER | WindowsNative.SWP_DRAWFRAME | WindowsNative.SWP_NOACTIVATE | WindowsNative.SWP_ASYNCWINDOWPOS;
+				WindowsNative.SetWindowPos(fxHandle, 0, x, y, width, height, flags);
+				desktopPositionChanged();
+			});
 		}
 		logger.debug("[FXEmbed] resizeWindow finished");
 	}
