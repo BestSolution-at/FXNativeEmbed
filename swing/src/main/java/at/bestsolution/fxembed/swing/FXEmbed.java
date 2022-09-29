@@ -491,13 +491,18 @@ public class FXEmbed extends JComponent {
 		if( windowExists() ) {
 			logger.debug("[FXEmbed] window exists, going to call setWindowPos");
 			Container parent = findRoot(this);
+			Window window = SwingUtilities.getWindowAncestor(this);
+			
+			double scaleX = window.getGraphicsConfiguration().getDefaultTransform().getScaleX();
+			double scaleY = window.getGraphicsConfiguration().getDefaultTransform().getScaleY();
+			
 			SwingUtilities.invokeLater( () -> {
 				Point p = SwingUtilities.convertPoint(this, new Point(0, 0), parent);
 				Rectangle b = getBounds();
-				int x = p.x;
-				int y = p.y;
-				int width = b.width - delta;
-				int height = b.height;
+				int x = (int)(p.x * scaleX);
+				int y = (int)(p.y * scaleY);
+				int width = (int)((b.width - delta) * scaleX);
+				int height = (int)(b.height * scaleY);
 				logger.debug("[FXEmebd] resizing to: " + x + "/" + y + "/" + width + "/" + height);
 				
 				int flags = WindowsNative.SWP_NOZORDER | WindowsNative.SWP_DRAWFRAME | WindowsNative.SWP_NOACTIVATE | WindowsNative.SWP_ASYNCWINDOWPOS;
